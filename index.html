@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A.U.R.O.R.A. MISIÓN 2 - Calibración Lógica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Starfield Background -->
+    <div id="starfield"></div>
+    
+    <!-- Scanlines Overlay -->
+    <div id="scanlines"></div>
+    
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <h1 class="title">A.U.R.O.R.A.</h1>
+            <h2 class="subtitle">MISIÓN 2: CALIBRACIÓN LÓGICA</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Inicializando sistema de navegación...</p>
+        </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorialModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="tutorial-header">
+                <h3 id="tutorialTitle">Tutorial</h3>
+                <div class="tutorial-progress">
+                    <span id="tutorialStep">1</span> / 6
+                </div>
+            </div>
+            <div class="tutorial-body">
+                <p id="tutorialMessage"></p>
+                <div id="tutorialHighlight" class="tutorial-highlight hidden"></div>
+            </div>
+            <div class="tutorial-footer">
+                <button id="tutorialNext" class="btn btn-primary">SIGUIENTE</button>
+                <button id="tutorialSkip" class="btn btn-secondary">SALTAR TUTORIAL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Interface -->
+    <div id="gameContainer" class="game-container hidden">
+        <!-- Header -->
+        <header class="game-header">
+            <h1 class="game-title">A.U.R.O.R.A. MISIÓN 2</h1>
+            <div class="mission-status">
+                <span id="missionStatus">CALIBRANDO SISTEMAS...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="game-main">
+            <!-- Mars Simulator -->
+            <section class="simulator-panel">
+                <h2 class="panel-title">SIMULADOR DE MARTE</h2>
+                <div class="grid-container">
+                    <div id="marsGrid" class="mars-grid"></div>
+                </div>
+                <div class="legend">
+                    <h3>LEYENDA</h3>
+                    <div class="legend-item">
+                        <span class="icon">🤖</span>
+                        <span>A.U.R.O.R.A. (Rover)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="icon">⚙️</span>
+                        <span>Punto de Recolección</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="icon">🔬</span>
+                        <span>Punto de Análisis</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="icon">🪨</span>
+                        <span>Obstáculos</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Command Panel -->
+            <section class="command-panel">
+                <h2 class="panel-title">CENTRO DE COMANDOS</h2>
+                
+                <!-- Command Box -->
+                <div class="command-box">
+                    <h3>CAJA DE COMANDOS</h3>
+                    <div id="commandBlocks" class="command-blocks">
+                        <div class="command-block" data-command="avanzar" draggable="true">
+                            <span class="command-name">avanzar</span>
+                            <span class="command-params">(  )</span>
+                        </div>
+                        <div class="command-block" data-command="girar" draggable="true">
+                            <span class="command-name">girar</span>
+                            <span class="command-params">(  )</span>
+                        </div>
+                        <div class="command-block" data-command="recogerMuestra" draggable="true">
+                            <span class="command-name">recogerMuestra</span>
+                            <span class="command-params">()</span>
+                        </div>
+                        <div class="command-block" data-command="analizarMuestra" draggable="true">
+                            <span class="command-name">analizarMuestra</span>
+                            <span class="command-params">()</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sequence Area -->
+                <div class="sequence-area">
+                    <h3>SECUENCIADOR DE OPERACIONES</h3>
+                    <div id="sequenceContainer" class="sequence-container">
+                        <div class="sequence-placeholder">
+                            Arrastra comandos aquí para crear la secuencia
+                        </div>
+                    </div>
+                    <div class="sequence-controls">
+                        <button id="clearSequence" class="btn btn-secondary">LIMPIAR SECUENCIA</button>
+                        <button id="executeSequence" class="btn btn-primary">[ EJECUTAR SECUENCIA ]</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="game-footer">
+            <div class="status-info">
+                <span id="systemStatus">SISTEMA LISTO</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Parameter Edit Modal -->
+    <div id="parameterModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>EDITAR PARÁMETRO</h3>
+            <div class="parameter-editor">
+                <label id="parameterLabel">Valor:</label>
+                <input type="text" id="parameterInput" class="form-control">
+                <select id="parameterSelect" class="form-control hidden">
+                    <option value="izquierda">izquierda</option>
+                    <option value="derecha">derecha</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button id="saveParameter" class="btn btn-primary">GUARDAR</button>
+                <button id="cancelParameter" class="btn btn-secondary">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>ERROR DE CALIBRACIÓN</h3>
+            <p id="errorMessage">¡Calibración incorrecta! Revisa el orden de tus comandos o la precisión de tus parámetros.</p>
+            <div class="modal-actions">
+                <button id="retryMission" class="btn btn-primary">REINTENTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victoryScreen" class="victory-screen hidden">
+        <div class="victory-content">
+            <div class="victory-bg"></div>
+            <div class="victory-text">
+                <h2>MISIÓN COMPLETADA</h2>
+                <div class="final-message">
+                    <p>Lo has conseguido, Cadete. La secuencia es perfecta. A.U.R.O.R.A. ha ejecutado las órdenes sin fallos, ha recolectado la muestra de hielo y ahora se dirige a la zona segura para transmitir su análisis. Los datos que acaba de enviar cambiarán el futuro de la exploración espacial.</p>
+                    
+                    <p>Hoy no solo has salvado un rover de mil millones de dólares. Has demostrado tener la mente analítica, la paciencia y la resolución de problemas de un verdadero/a ingeniero/a. Has convertido el caos en orden y el fracaso en un éxito histórico. La Academia y el mundo te dan las gracias. Misión cumplida.</p>
+                </div>
+                <button id="restartGame" class="btn btn-primary">NUEVA MISIÓN</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
