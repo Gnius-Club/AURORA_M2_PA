@@ -738,8 +738,6 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-/* VT323 Font Import */
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 /* Reset and Base Styles */
 * {
@@ -749,13 +747,21 @@ select.form-control {
 }
 
 body {
-    font-family: 'VT323', monospace;
+    font-family: 'Roboto', sans-serif; /* Changed to Roboto */
     background-color: #020a1a;
     color: #00ffff;
     overflow-x: hidden;
     min-height: 100vh;
     position: relative;
 }
+
+/* Keep VT323 for code-like elements */
+.command-block, .sequence-item, .btn, .form-control, 
+.mission-status, .game-footer, .loading-text, .subtitle, 
+.title, .panel-title, .chronometer, .legend-item {
+    font-family: 'VT323', monospace;
+}
+
 
 /* Starfield Background */
 #starfield {
@@ -839,7 +845,7 @@ body {
 }
 
 .title {
-    font-size: 4rem;
+    font-size: 5rem; /* +25% */
     color: #00ffff;
     text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
     margin-bottom: 1rem;
@@ -847,7 +853,7 @@ body {
 }
 
 .subtitle {
-    font-size: 1.5rem;
+    font-size: 1.875rem; /* +25% */
     color: #ffff00;
     margin-bottom: 3rem;
     letter-spacing: 2px;
@@ -871,7 +877,7 @@ body {
 }
 
 .loading-text {
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     color: #00ff00;
     animation: blink 1s infinite;
 }
@@ -904,21 +910,43 @@ body {
     border-bottom: 2px solid #00ffff;
     padding: 1rem 2rem;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    text-align: center;
 }
 
 .game-title {
-    font-size: 2.5rem;
+    font-size: 3.125rem; /* +25% */
     color: #00ffff;
     text-shadow: 0 0 10px #00ffff;
-    text-align: center;
     margin-bottom: 0.5rem;
 }
 
+.header-status-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 .mission-status {
-    text-align: center;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     color: #ffff00;
 }
+
+/* Chronometer */
+.chronometer {
+    font-size: 3rem; /* Large and dangerous */
+    color: #ff0000;
+    text-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 0 25px rgba(255, 0, 0, 0.6);
+    letter-spacing: 2px;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0.8; transform: scale(1); }
+}
+
 
 /* Main Content */
 .game-main {
@@ -941,7 +969,7 @@ body {
 }
 
 .panel-title {
-    font-size: 1.8rem;
+    font-size: 2.25rem; /* +25% */
     color: #00ffff;
     text-shadow: 0 0 10px #00ffff;
     margin-bottom: 1.5rem;
@@ -974,7 +1002,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     position: relative;
     transition: all 0.3s ease;
 }
@@ -1017,7 +1045,7 @@ body {
 
 .legend h3 {
     color: #ffff00;
-    font-size: 1.3rem;
+    font-size: 1.625rem; /* +25% */
     margin-bottom: 0.8rem;
     text-align: center;
 }
@@ -1026,7 +1054,7 @@ body {
     display: flex;
     align-items: center;
     margin-bottom: 0.5rem;
-    font-size: 1.1rem;
+    font-size: 1.375rem; /* +25% */
 }
 
 .legend-item .icon {
@@ -1044,7 +1072,7 @@ body {
 .command-box h3,
 .sequence-area h3 {
     color: #ffff00;
-    font-size: 1.4rem;
+    font-size: 1.75rem; /* +25% */
     margin-bottom: 1rem;
     text-align: center;
 }
@@ -1065,7 +1093,7 @@ body {
     cursor: grab;
     transition: all 0.3s ease;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1.375rem; /* +25% */
     box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
 }
 
@@ -1111,7 +1139,7 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     color: rgba(0, 255, 255, 0.5);
-    font-size: 1.1rem;
+    font-size: 1.375rem; /* +25% */
     text-align: center;
     pointer-events: none;
 }
@@ -1126,7 +1154,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 1.1rem;
+    font-size: 1.375rem; /* +25% */
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
     transition: all 0.3s ease;
 }
@@ -1190,7 +1218,7 @@ body {
 .sequence-remove {
     color: #ff6666;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     padding: 0.2rem;
     border-radius: 3px;
     transition: all 0.3s ease;
@@ -1211,7 +1239,7 @@ body {
 /* Buttons */
 .btn {
     font-family: 'VT323', monospace;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     padding: 0.8rem 1.5rem;
     border: 2px solid;
     border-radius: 4px;
@@ -1274,7 +1302,7 @@ body {
     border-top: 2px solid #00ffff;
     padding: 1rem 2rem;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1.375rem; /* +25% */
     color: #00ff00;
 }
 
@@ -1305,7 +1333,7 @@ body {
     border: 2px solid #00ffff;
     border-radius: 8px;
     padding: 2rem;
-    max-width: 500px;
+    max-width: 600px; /* Increased max width for larger text */
     width: 90%;
     box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
     text-align: center;
@@ -1313,7 +1341,7 @@ body {
 
 .modal-content h3 {
     color: #00ffff;
-    font-size: 1.8rem;
+    font-size: 2.25rem; /* +25% */
     margin-bottom: 1.5rem;
     text-shadow: 0 0 10px #00ffff;
 }
@@ -1328,7 +1356,7 @@ body {
 
 .tutorial-progress {
     color: #ffff00;
-    font-size: 1.1rem;
+    font-size: 1.375rem; /* +25% */
 }
 
 .tutorial-body {
@@ -1336,7 +1364,7 @@ body {
 }
 
 .tutorial-body p {
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     line-height: 1.6;
     color: #00ff00;
     margin-bottom: 1rem;
@@ -1356,15 +1384,33 @@ body {
 .parameter-editor label {
     display: block;
     color: #ffff00;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     margin-bottom: 0.8rem;
+}
+
+.parameter-button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.param-btn {
+    flex-grow: 1;
+}
+
+.param-btn.active {
+    background: rgba(255, 255, 0, 0.3);
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+    text-shadow: 0 0 10px #ffff00;
+    transform: scale(1.05);
 }
 
 .form-control {
     width: 100%;
     padding: 0.8rem;
     font-family: 'VT323', monospace;
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* +25% */
     background: rgba(0, 20, 40, 0.8);
     border: 2px solid #00ffff;
     border-radius: 4px;
@@ -1407,7 +1453,7 @@ body {
 
 .victory-content {
     text-align: center;
-    max-width: 800px;
+    max-width: 900px; /* Increased for larger text */
     padding: 2rem;
     position: relative;
 }
@@ -1434,11 +1480,19 @@ body {
 }
 
 .victory-text h2 {
-    font-size: 3rem;
+    font-size: 3.75rem; /* +25% */
     color: #00ffff;
     text-shadow: 0 0 20px #00ffff;
     margin-bottom: 2rem;
     animation: glow 2s ease-in-out infinite alternate;
+}
+
+.victory-time {
+    font-size: 2rem;
+    color: #ffff00;
+    text-shadow: 0 0 10px #ffff00;
+    margin-bottom: 2rem;
+    font-family: 'VT323', monospace;
 }
 
 .final-message {
@@ -1446,7 +1500,7 @@ body {
 }
 
 .final-message p {
-    font-size: 1.3rem;
+    font-size: 1.625rem; /* +25% */
     line-height: 1.8;
     color: #00ff00;
     margin-bottom: 1.5rem;
@@ -1482,11 +1536,11 @@ body {
     }
     
     .game-title {
-        font-size: 2rem;
+        font-size: 2.5rem; /* +25% */
     }
     
     .panel-title {
-        font-size: 1.5rem;
+        font-size: 1.875rem; /* +25% */
     }
     
     .command-blocks {
@@ -1502,11 +1556,11 @@ body {
     }
     
     .victory-text h2 {
-        font-size: 2rem;
+        font-size: 2.5rem; /* +25% */
     }
     
     .final-message p {
-        font-size: 1.1rem;
+        font-size: 1.375rem; /* +25% */
     }
 }
 
@@ -1516,11 +1570,15 @@ body {
     }
     
     .game-title {
-        font-size: 1.5rem;
+        font-size: 1.875rem; /* +25% */
     }
     
     .mission-status {
-        font-size: 1rem;
+        font-size: 1.25rem; /* +25% */
+    }
+
+    .chronometer {
+        font-size: 2.5rem;
     }
     
     .simulator-panel,
@@ -1529,11 +1587,11 @@ body {
     }
     
     .mars-grid {
-        font-size: 1rem;
+        font-size: 1.25rem; /* +25% */
     }
     
     .btn {
-        font-size: 1rem;
+        font-size: 1.25rem; /* +25% */
         padding: 0.6rem 1rem;
     }
 }
