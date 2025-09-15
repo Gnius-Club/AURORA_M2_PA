@@ -37,6 +37,10 @@ let gameState = {
     samplesAnalyzed: false
 };
 
+// Timer State
+let timerInterval = null;
+let secondsElapsed = 0;
+
 // Audio Context for sound effects
 let audioContext;
 let sounds = {};
@@ -44,6 +48,7 @@ let sounds = {};
 // DOM Elements
 let elements = {};
 let currentEditingItem = null;
+let currentParameterSelection = null; // For button selection
 let draggedElement = null;
 
 // Initialize the game
@@ -73,7 +78,7 @@ function initializeElements() {
         parameterModal: document.getElementById('parameterModal'),
         parameterLabel: document.getElementById('parameterLabel'),
         parameterInput: document.getElementById('parameterInput'),
-        parameterSelect: document.getElementById('parameterSelect'),
+        parameterButtons: document.getElementById('parameterButtons'), // New button container
         saveParameter: document.getElementById('saveParameter'),
         cancelParameter: document.getElementById('cancelParameter'),
         errorModal: document.getElementById('errorModal'),
@@ -82,7 +87,9 @@ function initializeElements() {
         victoryScreen: document.getElementById('victoryScreen'),
         restartGame: document.getElementById('restartGame'),
         missionStatus: document.getElementById('missionStatus'),
-        systemStatus: document.getElementById('systemStatus')
+        systemStatus: document.getElementById('systemStatus'),
+        chronometer: document.getElementById('chronometer'),
+        finalMissionTime: document.getElementById('finalMissionTime') // New element for victory time
     };
 }
 
@@ -98,8 +105,6 @@ function initializeAudio() {
 
 function generateSounds() {
     if (!audioContext) return;
-
-    // Generate procedural sounds
     sounds.click = createClickSound();
     sounds.drag = createDragSound();
     sounds.drop = createDropSound();
@@ -114,16 +119,12 @@ function createClickSound() {
         if (!audioContext) return;
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-        
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
     };
@@ -134,16 +135,12 @@ function createDragSound() {
         if (!audioContext) return;
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
         oscillator.type = 'sawtooth';
-        
         gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.2);
     };
@@ -154,16 +151,12 @@ function createDropSound() {
         if (!audioContext) return;
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.15);
-        
         gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.15);
     };
@@ -174,16 +167,12 @@ function createMoveSound() {
         if (!audioContext) return;
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
         oscillator.type = 'square';
-        
         gainNode.gain.setValueAtTime(0.03, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.3);
     };
@@ -192,19 +181,16 @@ function createMoveSound() {
 function createSuccessSound() {
     return function() {
         if (!audioContext) return;
-        const notes = [262, 330, 392, 523]; // C, E, G, C
+        const notes = [262, 330, 392, 523];
         notes.forEach((freq, index) => {
             setTimeout(() => {
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
-                
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
-                
                 oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
                 gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.5);
             }, index * 200);
@@ -217,16 +203,12 @@ function createErrorSound() {
         if (!audioContext) return;
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
         oscillator.type = 'sawtooth';
-        
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
     };
@@ -238,18 +220,14 @@ function createAmbientSound() {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         const filter = audioContext.createBiquadFilter();
-        
         oscillator.connect(filter);
         filter.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.setValueAtTime(40, audioContext.currentTime);
         oscillator.type = 'sine';
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(200, audioContext.currentTime);
-        
         gainNode.gain.setValueAtTime(0.02, audioContext.currentTime);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 10);
     };
@@ -265,6 +243,7 @@ function initializeGame() {
     generateMarsGrid();
     setupDragAndDrop();
     resetGameState();
+    resetTimer();
 }
 
 function generateMarsGrid() {
@@ -277,8 +256,6 @@ function generateMarsGrid() {
             cell.className = 'grid-cell';
             cell.dataset.x = x;
             cell.dataset.y = y;
-            
-            // Add content based on position
             if (x === GAME_CONFIG.roverStart.x && y === GAME_CONFIG.roverStart.y) {
                 cell.classList.add('rover');
                 cell.innerHTML = '🤖';
@@ -292,75 +269,87 @@ function generateMarsGrid() {
                 cell.classList.add('obstacle');
                 cell.innerHTML = '🪨';
             }
-            
             grid.appendChild(cell);
         }
     }
 }
 
 function setupEventListeners() {
-    // Tutorial events
     elements.tutorialNext.addEventListener('click', nextTutorialStep);
     elements.tutorialSkip.addEventListener('click', skipTutorial);
-    
-    // Sequence controls
     elements.clearSequence.addEventListener('click', clearSequence);
     elements.executeSequence.addEventListener('click', executeSequence);
-    
-    // Parameter modal events
     elements.saveParameter.addEventListener('click', saveParameter);
     elements.cancelParameter.addEventListener('click', closeParameterModal);
-    
-    // Error modal events
-    elements.retryMission.addEventListener('click', closeErrorModal);
-    
-    // Victory screen events
+    elements.retryMission.addEventListener('click', handleMissionRetry); // MODIFIED
     elements.restartGame.addEventListener('click', restartGame);
     
-    // Close modals on outside click
-    elements.tutorialModal.addEventListener('click', function(e) {
-        if (e.target === this) skipTutorial();
-    });
+    elements.tutorialModal.addEventListener('click', (e) => { if (e.target === e.currentTarget) skipTutorial(); });
+    elements.parameterModal.addEventListener('click', (e) => { if (e.target === e.currentTarget) closeParameterModal(); });
+    elements.errorModal.addEventListener('click', (e) => { if (e.target === e.currentTarget) handleMissionRetry(); });
     
-    elements.parameterModal.addEventListener('click', function(e) {
-        if (e.target === this) closeParameterModal();
+    elements.parameterButtons.querySelectorAll('.param-btn').forEach(btn => {
+        btn.addEventListener('click', handleParamButtonClick);
     });
-    
-    elements.errorModal.addEventListener('click', function(e) {
-        if (e.target === this) closeErrorModal();
-    });
-    
-    // Keyboard events
+
     document.addEventListener('keydown', handleKeyDown);
 }
 
+// NEW function to handle the reset after a failure
+function handleMissionRetry() {
+    closeErrorModal();
+    resetOnFailure();
+}
+
+// NEW function that contains all reset logic for a failed attempt
+function resetOnFailure() {
+    // Reset rover's logical state
+    gameState.rover = { ...GAME_CONFIG.roverStart };
+    
+    // Reset mission progress for this attempt
+    gameState.samplesCollected = false;
+    gameState.samplesAnalyzed = false;
+
+    // Visually redraw the grid to move rover to start
+    generateMarsGrid();
+
+    // Clear all execution statuses (like 'completed', 'error') from the sequence items
+    const sequenceItems = elements.sequenceContainer.querySelectorAll('.sequence-item');
+    sequenceItems.forEach(item => {
+        item.classList.remove('current', 'completed', 'error');
+    });
+
+    // Update mission status text
+    elements.missionStatus.textContent = 'SISTEMA LISTO - REINTENTAR SECUENCIA';
+}
+
+
+function handleParamButtonClick(e) {
+    const value = e.target.dataset.value;
+    currentParameterSelection = value;
+    elements.parameterButtons.querySelectorAll('.param-btn').forEach(button => {
+        button.classList.remove('active');
+    });
+    e.target.classList.add('active');
+    playSound('click');
+}
+
+
 function handleKeyDown(e) {
     if (e.key === 'Escape') {
-        if (!elements.tutorialModal.classList.contains('hidden')) {
-            skipTutorial();
-        } else if (!elements.parameterModal.classList.contains('hidden')) {
-            closeParameterModal();
-        } else if (!elements.errorModal.classList.contains('hidden')) {
-            closeErrorModal();
-        }
+        if (!elements.tutorialModal.classList.contains('hidden')) skipTutorial();
+        else if (!elements.parameterModal.classList.contains('hidden')) closeParameterModal();
+        else if (!elements.errorModal.classList.contains('hidden')) handleMissionRetry(); // MODIFIED
     }
-    
-    if (e.key === 'Enter') {
-        if (!elements.parameterModal.classList.contains('hidden')) {
-            saveParameter();
-        }
-    }
+    if (e.key === 'Enter' && !elements.parameterModal.classList.contains('hidden')) saveParameter();
 }
 
 function setupDragAndDrop() {
-    // Command blocks drag events
     const commandBlocks = elements.commandBlocks.querySelectorAll('.command-block');
     commandBlocks.forEach(block => {
         block.addEventListener('dragstart', handleDragStart);
         block.addEventListener('dragend', handleDragEnd);
     });
-    
-    // Sequence container drop events
     elements.sequenceContainer.addEventListener('dragover', handleDragOver);
     elements.sequenceContainer.addEventListener('drop', handleDrop);
     elements.sequenceContainer.addEventListener('dragenter', handleDragEnter);
@@ -371,11 +360,7 @@ function handleDragStart(e) {
     draggedElement = e.target;
     e.target.classList.add('dragging');
     playSound('drag');
-    
-    const commandData = {
-        id: e.target.dataset.command,
-        label: e.target.textContent.trim()
-    };
+    const commandData = { id: e.target.dataset.command, label: e.target.textContent.trim() };
     e.dataTransfer.setData('application/json', JSON.stringify(commandData));
     e.dataTransfer.effectAllowed = 'copy';
 }
@@ -406,7 +391,6 @@ function handleDragLeave(e) {
 function handleDrop(e) {
     e.preventDefault();
     elements.sequenceContainer.classList.remove('drag-over');
-    
     try {
         const commandData = JSON.parse(e.dataTransfer.getData('application/json'));
         addCommandToSequence(commandData);
@@ -420,11 +404,8 @@ function addCommandToSequence(commandData) {
     const commandConfig = COMMANDS.find(cmd => cmd.id === commandData.id);
     if (!commandConfig) return;
     
-    // Hide placeholder if visible
     const placeholder = elements.sequenceContainer.querySelector('.sequence-placeholder');
-    if (placeholder) {
-        placeholder.style.display = 'none';
-    }
+    if (placeholder) placeholder.style.display = 'none';
     
     const sequenceItem = document.createElement('div');
     sequenceItem.className = 'sequence-item';
@@ -454,7 +435,6 @@ function addCommandToSequence(commandData) {
     sequenceItem.appendChild(paramsSpan);
     sequenceItem.appendChild(removeBtn);
     
-    // Store command data
     sequenceItem.dataset.command = commandConfig.id;
     sequenceItem.dataset.hasParameter = commandConfig.hasParameter;
     if (commandConfig.hasParameter) {
@@ -465,8 +445,6 @@ function addCommandToSequence(commandData) {
     }
     
     elements.sequenceContainer.appendChild(sequenceItem);
-    
-    // Setup drag and drop for sequence items
     setupSequenceItemDrag(sequenceItem);
 }
 
@@ -476,23 +454,17 @@ function setupSequenceItemDrag(item) {
         item.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
     });
-    
     item.addEventListener('dragend', function(e) {
         item.classList.remove('dragging');
     });
-    
     item.addEventListener('dragover', function(e) {
         e.preventDefault();
         if (e.target.closest('.sequence-item') !== item) {
             const afterElement = getDragAfterElement(elements.sequenceContainer, e.clientY);
             const dragging = document.querySelector('.sequence-item.dragging');
-            
             if (dragging && dragging !== item) {
-                if (afterElement == null) {
-                    elements.sequenceContainer.appendChild(dragging);
-                } else {
-                    elements.sequenceContainer.insertBefore(dragging, afterElement);
-                }
+                if (afterElement == null) elements.sequenceContainer.appendChild(dragging);
+                else elements.sequenceContainer.insertBefore(dragging, afterElement);
             }
         }
     });
@@ -500,45 +472,34 @@ function setupSequenceItemDrag(item) {
 
 function getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll('.sequence-item:not(.dragging)')];
-    
     return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
         const offset = y - box.top - box.height / 2;
-        
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
-        }
+        if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+        else return closest;
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
 function editParameter(sequenceItem, commandConfig) {
     if (gameState.isExecuting) return;
-    
     currentEditingItem = sequenceItem;
-    
     elements.parameterLabel.textContent = `${commandConfig.paramName}:`;
-    
+
     if (commandConfig.paramType === 'number') {
         elements.parameterInput.style.display = 'block';
-        elements.parameterSelect.style.display = 'none';
+        elements.parameterButtons.classList.add('hidden');
         elements.parameterInput.value = sequenceItem.dataset.parameterValue || '';
         setTimeout(() => elements.parameterInput.focus(), 100);
     } else if (commandConfig.paramType === 'select') {
         elements.parameterInput.style.display = 'none';
-        elements.parameterSelect.style.display = 'block';
+        elements.parameterButtons.classList.remove('hidden');
         
-        // Clear and populate options
-        elements.parameterSelect.innerHTML = '';
-        commandConfig.options.forEach(option => {
-            const optionElement = document.createElement('option');
-            optionElement.value = option;
-            optionElement.textContent = option;
-            elements.parameterSelect.appendChild(optionElement);
+        const currentValue = sequenceItem.dataset.parameterValue;
+        currentParameterSelection = currentValue;
+
+        elements.parameterButtons.querySelectorAll('.param-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === currentValue);
         });
-        
-        elements.parameterSelect.value = sequenceItem.dataset.parameterValue || commandConfig.options[0];
     }
     
     elements.parameterModal.classList.remove('hidden');
@@ -557,9 +518,13 @@ function saveParameter() {
             alert('Por favor, ingresa un número válido mayor que 0');
             return;
         }
-        value = parseInt(value).toString(); // Normalize the value
+        value = parseInt(value).toString();
     } else if (commandConfig.paramType === 'select') {
-        value = elements.parameterSelect.value;
+        value = currentParameterSelection;
+        if (!value) {
+            alert('Por favor, selecciona una dirección.');
+            return;
+        }
     }
     
     currentEditingItem.dataset.parameterValue = value;
@@ -573,45 +538,38 @@ function saveParameter() {
 function closeParameterModal() {
     elements.parameterModal.classList.add('hidden');
     currentEditingItem = null;
+    currentParameterSelection = null;
 }
 
 function removeSequenceItem(item) {
     item.remove();
-    
-    // Show placeholder if no items left
     const items = elements.sequenceContainer.querySelectorAll('.sequence-item');
     if (items.length === 0) {
         const placeholder = elements.sequenceContainer.querySelector('.sequence-placeholder');
-        if (placeholder) {
-            placeholder.style.display = 'block';
-        }
+        if (placeholder) placeholder.style.display = 'block';
     }
-    
     playSound('click');
 }
 
 function clearSequence() {
-    const items = elements.sequenceContainer.querySelectorAll('.sequence-item');
-    items.forEach(item => item.remove());
-    
+    elements.sequenceContainer.querySelectorAll('.sequence-item').forEach(item => item.remove());
     const placeholder = elements.sequenceContainer.querySelector('.sequence-placeholder');
-    if (placeholder) {
-        placeholder.style.display = 'block';
-    }
-    
+    if (placeholder) placeholder.style.display = 'block';
     playSound('click');
 }
 
 function executeSequence() {
     if (gameState.isExecuting) return;
     
+    // Before executing, reset rover and progress from any previous failed attempt
+    resetOnFailure();
+
     const sequenceItems = elements.sequenceContainer.querySelectorAll('.sequence-item');
     if (sequenceItems.length === 0) {
         showError('No hay comandos en la secuencia. Arrastra comandos para crear tu secuencia.');
         return;
     }
     
-    // Check for missing parameters
     for (let item of sequenceItems) {
         if (item.dataset.hasParameter === 'true' && !item.dataset.parameterValue) {
             showError('Algunos comandos necesitan parámetros. Haz clic en los paréntesis para editarlos.');
@@ -619,7 +577,6 @@ function executeSequence() {
         }
     }
     
-    // Build sequence array
     gameState.sequence = Array.from(sequenceItems).map(item => ({
         command: item.dataset.command,
         parameter: item.dataset.parameterValue
@@ -629,14 +586,12 @@ function executeSequence() {
     gameState.isExecuting = true;
     elements.executeSequence.disabled = true;
     elements.missionStatus.textContent = 'EJECUTANDO SECUENCIA...';
-    
     playSound('click');
     executeNextCommand();
 }
 
 function executeNextCommand() {
     if (gameState.currentStep >= gameState.sequence.length) {
-        // Sequence completed successfully
         completeSequence();
         return;
     }
@@ -644,24 +599,18 @@ function executeNextCommand() {
     const currentCommand = gameState.sequence[gameState.currentStep];
     const sequenceItems = elements.sequenceContainer.querySelectorAll('.sequence-item');
     
-    // Highlight current command
     sequenceItems.forEach((item, index) => {
         item.classList.remove('current', 'completed', 'error');
-        if (index === gameState.currentStep) {
-            item.classList.add('current');
-        } else if (index < gameState.currentStep) {
-            item.classList.add('completed');
-        }
+        if (index === gameState.currentStep) item.classList.add('current');
+        else if (index < gameState.currentStep) item.classList.add('completed');
     });
     
-    // Execute command
     setTimeout(() => {
         const success = executeCommand(currentCommand);
         if (success) {
             gameState.currentStep++;
             setTimeout(executeNextCommand, 1000);
         } else {
-            // Command failed
             sequenceItems[gameState.currentStep].classList.remove('current');
             sequenceItems[gameState.currentStep].classList.add('error');
             gameState.isExecuting = false;
@@ -675,77 +624,44 @@ function executeNextCommand() {
 
 function executeCommand(commandData) {
     const { command, parameter } = commandData;
-    
     switch (command) {
-        case 'avanzar':
-            return moveRover(parseInt(parameter));
-        case 'girar':
-            return turnRover(parameter);
-        case 'recogerMuestra':
-            return collectSample();
-        case 'analizarMuestra':
-            return analyzeSample();
-        default:
-            return false;
+        case 'avanzar': return moveRover(parseInt(parameter));
+        case 'girar': return turnRover(parameter);
+        case 'recogerMuestra': return collectSample();
+        case 'analizarMuestra': return analyzeSample();
+        default: return false;
     }
 }
 
 function moveRover(steps) {
-    const directions = {
-        'right': { dx: 1, dy: 0 },
-        'down': { dx: 0, dy: 1 },
-        'left': { dx: -1, dy: 0 },
-        'up': { dx: 0, dy: -1 }
-    };
-    
+    const directions = { 'right': { dx: 1, dy: 0 }, 'down': { dx: 0, dy: 1 }, 'left': { dx: -1, dy: 0 }, 'up': { dx: 0, dy: -1 } };
     const dir = directions[gameState.rover.direction];
     let moveCount = 0;
     
     function moveStep() {
-        if (moveCount >= steps) {
-            return true;
-        }
-        
+        if (moveCount >= steps) return true;
         const newX = gameState.rover.x + dir.dx;
         const newY = gameState.rover.y + dir.dy;
-        
-        // Check bounds
-        if (newX < 0 || newX >= GAME_CONFIG.gridSize || newY < 0 || newY >= GAME_CONFIG.gridSize) {
+        if (newX < 0 || newX >= GAME_CONFIG.gridSize || newY < 0 || newY >= GAME_CONFIG.gridSize || GAME_CONFIG.obstacles.some(obs => obs.x === newX && obs.y === newY)) {
             showRoverError();
             return false;
         }
-        
-        // Check obstacles
-        if (GAME_CONFIG.obstacles.some(obs => obs.x === newX && obs.y === newY)) {
-            showRoverError();
-            return false;
-        }
-        
-        // Move rover
         updateRoverPosition(newX, newY);
         playSound('move');
         moveCount++;
-        
         setTimeout(() => moveStep(), 400);
         return true;
     }
-    
     return moveStep();
 }
 
 function turnRover(direction) {
-    const currentDir = gameState.rover.direction;
-    const directions = ['right', 'down', 'left', 'up'];
-    const currentIndex = directions.indexOf(currentDir);
-    
+    const dirs = ['right', 'down', 'left', 'up'];
+    const currentIndex = dirs.indexOf(gameState.rover.direction);
     let newIndex;
-    if (direction === 'derecha') {
-        newIndex = (currentIndex + 1) % 4;
-    } else if (direction === 'izquierda') {
-        newIndex = (currentIndex - 1 + 4) % 4;
-    }
-    
-    gameState.rover.direction = directions[newIndex];
+    if (direction === 'derecha') newIndex = (currentIndex + 1) % 4;
+    else if (direction === 'izquierda') newIndex = (currentIndex - 1 + 4) % 4;
+    gameState.rover.direction = dirs[newIndex];
     updateRoverDisplay();
     playSound('click');
     return true;
@@ -758,10 +674,9 @@ function collectSample() {
         showActionEffect(x, y);
         playSound('success');
         return true;
-    } else {
-        showRoverError();
-        return false;
     }
+    showRoverError();
+    return false;
 }
 
 function analyzeSample() {
@@ -771,23 +686,17 @@ function analyzeSample() {
         showActionEffect(x, y);
         playSound('success');
         return true;
-    } else {
-        showRoverError();
-        return false;
     }
+    showRoverError();
+    return false;
 }
 
 function updateRoverPosition(x, y) {
-    // Remove rover from current position
     const currentCell = elements.marsGrid.querySelector('.grid-cell.rover');
     if (currentCell) {
         currentCell.classList.remove('rover');
         currentCell.innerHTML = '';
-        
-        // Restore original content if needed
-        const cellX = parseInt(currentCell.dataset.x);
-        const cellY = parseInt(currentCell.dataset.y);
-        
+        const cellX = parseInt(currentCell.dataset.x), cellY = parseInt(currentCell.dataset.y);
         if (cellX === GAME_CONFIG.collectPoint.x && cellY === GAME_CONFIG.collectPoint.y) {
             currentCell.classList.add('collect-point');
             currentCell.innerHTML = GAME_CONFIG.collectPoint.icon;
@@ -796,43 +705,28 @@ function updateRoverPosition(x, y) {
             currentCell.innerHTML = GAME_CONFIG.analysisPoint.icon;
         }
     }
-    
-    // Add rover to new position
     const newCell = elements.marsGrid.querySelector(`[data-x="${x}"][data-y="${y}"]`);
     if (newCell) {
         newCell.classList.remove('collect-point', 'analysis-point');
         newCell.classList.add('rover');
         newCell.innerHTML = getRoverIcon();
     }
-    
     gameState.rover.x = x;
     gameState.rover.y = y;
 }
 
-function getRoverIcon() {
-    const directionIcons = {
-        'right': '🤖',
-        'down': '🤖',
-        'left': '🤖',
-        'up': '🤖'
-    };
-    return directionIcons[gameState.rover.direction] || '🤖';
-}
+function getRoverIcon() { return '🤖'; }
 
 function updateRoverDisplay() {
     const roverCell = elements.marsGrid.querySelector('.grid-cell.rover');
-    if (roverCell) {
-        roverCell.innerHTML = getRoverIcon();
-    }
+    if (roverCell) roverCell.innerHTML = getRoverIcon();
 }
 
 function showActionEffect(x, y) {
     const cell = elements.marsGrid.querySelector(`[data-x="${x}"][data-y="${y}"]`);
     if (cell) {
         cell.classList.add('action-effect');
-        setTimeout(() => {
-            cell.classList.remove('action-effect');
-        }, 1000);
+        setTimeout(() => cell.classList.remove('action-effect'), 1000);
     }
 }
 
@@ -840,9 +734,7 @@ function showRoverError() {
     const roverCell = elements.marsGrid.querySelector('.grid-cell.rover');
     if (roverCell) {
         roverCell.innerHTML = '🤖❌';
-        setTimeout(() => {
-            roverCell.innerHTML = getRoverIcon();
-        }, 1000);
+        setTimeout(() => roverCell.innerHTML = getRoverIcon(), 1000);
     }
 }
 
@@ -850,21 +742,18 @@ function completeSequence() {
     gameState.isExecuting = false;
     elements.executeSequence.disabled = false;
     
-    // Clear current highlighting
     const sequenceItems = elements.sequenceContainer.querySelectorAll('.sequence-item');
     sequenceItems.forEach(item => {
         item.classList.remove('current');
         item.classList.add('completed');
     });
     
-    // Check if mission objectives are complete
     if (gameState.samplesCollected && gameState.samplesAnalyzed) {
-        // Mission successful!
         elements.missionStatus.textContent = 'MISIÓN COMPLETADA';
         playSound('success');
+        stopTimer();
         setTimeout(showVictoryScreen, 1500);
     } else {
-        // Sequence completed but objectives not met
         elements.missionStatus.textContent = 'SECUENCIA COMPLETADA';
         showError('Secuencia ejecutada, pero no se completaron todos los objetivos. ¿Recogiste la muestra y la analizaste?');
     }
@@ -880,6 +769,7 @@ function closeErrorModal() {
 }
 
 function showVictoryScreen() {
+    elements.finalMissionTime.textContent = formatTime(secondsElapsed); // Set final time
     elements.victoryScreen.classList.remove('hidden');
     playSound('ambient');
 }
@@ -890,25 +780,54 @@ function restartGame() {
     clearSequence();
     elements.missionStatus.textContent = 'SISTEMA LISTO - ESPERANDO ÓRDENES';
     elements.systemStatus.textContent = 'SISTEMA LISTO';
+    resetTimer();
+    startTimer();
 }
 
 function resetGameState() {
     gameState = {
-        rover: { x: GAME_CONFIG.roverStart.x, y: GAME_CONFIG.roverStart.y, direction: GAME_CONFIG.roverStart.direction },
-        sequence: [],
-        isExecuting: false,
-        currentStep: 0,
-        tutorialStep: 0,
-        samplesCollected: false,
-        samplesAnalyzed: false
+        rover: { ...GAME_CONFIG.roverStart },
+        sequence: [], isExecuting: false, currentStep: 0, tutorialStep: 0,
+        samplesCollected: false, samplesAnalyzed: false
     };
-    
-    // Reset rover position on grid
-    generateMarsGrid(); // Regenerate grid to reset all positions
+    generateMarsGrid();
     elements.executeSequence.disabled = false;
 }
 
-// Loading and Tutorial Functions
+function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    secondsElapsed = 0;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        secondsElapsed++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+}
+
+function resetTimer() {
+    stopTimer();
+    secondsElapsed = 0;
+    updateTimerDisplay();
+}
+
+function formatTime(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+    const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+}
+
+function updateTimerDisplay() {
+    if (elements.chronometer) {
+        elements.chronometer.textContent = formatTime(secondsElapsed);
+    }
+}
+
 function startLoadingSequence() {
     setTimeout(() => {
         elements.loadingScreen.classList.add('fade-out');
@@ -930,17 +849,11 @@ function showTutorialStep() {
     elements.tutorialTitle.textContent = step.title;
     elements.tutorialMessage.textContent = step.message;
     elements.tutorialStep.textContent = gameState.tutorialStep + 1;
-    
-    if (gameState.tutorialStep === TUTORIAL_STEPS.length - 1) {
-        elements.tutorialNext.textContent = 'COMENZAR';
-    } else {
-        elements.tutorialNext.textContent = 'SIGUIENTE';
-    }
+    elements.tutorialNext.textContent = (gameState.tutorialStep === TUTORIAL_STEPS.length - 1) ? 'COMENZAR' : 'SIGUIENTE';
 }
 
 function nextTutorialStep() {
     playSound('click');
-    
     if (gameState.tutorialStep < TUTORIAL_STEPS.length - 1) {
         gameState.tutorialStep++;
         showTutorialStep();
@@ -960,21 +873,13 @@ function finishTutorial() {
     elements.gameContainer.classList.add('fade-in');
     elements.missionStatus.textContent = 'SISTEMA LISTO - ESPERANDO ÓRDENES';
     playSound('ambient');
+    startTimer();
 }
 
-// Responsive handling
-window.addEventListener('resize', function() {
-    // Adjust layout for mobile if needed
-    if (window.innerWidth < 768) {
-        document.body.classList.add('mobile-layout');
-    } else {
-        document.body.classList.remove('mobile-layout');
-    }
+window.addEventListener('resize', () => {
+    document.body.classList.toggle('mobile-layout', window.innerWidth < 768);
 });
 
-// Initialize responsive class
-if (window.innerWidth < 768) {
-    document.body.classList.add('mobile-layout');
-}
+document.body.classList.toggle('mobile-layout', window.innerWidth < 768);
 
 console.log('A.U.R.O.R.A. Misión 2 inicializada correctamente');
