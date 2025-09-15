@@ -6,7 +6,7 @@
     <title>A.U.R.O.R.A. MISIÓN 2 - Calibración Lógica</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -53,8 +53,11 @@
         <!-- Header -->
         <header class="game-header">
             <h1 class="game-title">A.U.R.O.R.A. MISIÓN 2</h1>
-            <div class="mission-status">
-                <span id="missionStatus">CALIBRANDO SISTEMAS...</span>
+            <div class="header-status-container">
+                <div id="chronometer" class="chronometer">00:00:00</div>
+                <div class="mission-status">
+                    <span id="missionStatus">CALIBRANDO SISTEMAS...</span>
+                </div>
             </div>
         </header>
 
@@ -91,36 +94,20 @@
             <section class="command-panel">
                 <h2 class="panel-title">CENTRO DE COMANDOS</h2>
                 
-                <!-- Command Box -->
                 <div class="command-box">
                     <h3>CAJA DE COMANDOS</h3>
                     <div id="commandBlocks" class="command-blocks">
-                        <div class="command-block" data-command="avanzar" draggable="true">
-                            <span class="command-name">avanzar</span>
-                            <span class="command-params">(  )</span>
-                        </div>
-                        <div class="command-block" data-command="girar" draggable="true">
-                            <span class="command-name">girar</span>
-                            <span class="command-params">(  )</span>
-                        </div>
-                        <div class="command-block" data-command="recogerMuestra" draggable="true">
-                            <span class="command-name">recogerMuestra</span>
-                            <span class="command-params">()</span>
-                        </div>
-                        <div class="command-block" data-command="analizarMuestra" draggable="true">
-                            <span class="command-name">analizarMuestra</span>
-                            <span class="command-params">()</span>
-                        </div>
+                        <div class="command-block" data-command="avanzar" draggable="true"><span class="command-name">avanzar</span><span class="command-params">(  )</span></div>
+                        <div class="command-block" data-command="girar" draggable="true"><span class="command-name">girar</span><span class="command-params">(  )</span></div>
+                        <div class="command-block" data-command="recogerMuestra" draggable="true"><span class="command-name">recogerMuestra</span><span class="command-params">()</span></div>
+                        <div class="command-block" data-command="analizarMuestra" draggable="true"><span class="command-name">analizarMuestra</span><span class="command-params">()</span></div>
                     </div>
                 </div>
 
-                <!-- Sequence Area -->
                 <div class="sequence-area">
                     <h3>SECUENCIADOR DE OPERACIONES</h3>
                     <div id="sequenceContainer" class="sequence-container">
-                        <div class="sequence-placeholder">
-                            Arrastra comandos aquí para crear la secuencia
-                        </div>
+                        <div class="sequence-placeholder">Arrastra comandos aquí para crear la secuencia</div>
                     </div>
                     <div class="sequence-controls">
                         <button id="clearSequence" class="btn btn-secondary">LIMPIAR SECUENCIA</button>
@@ -130,11 +117,8 @@
             </section>
         </main>
 
-        <!-- Footer -->
         <footer class="game-footer">
-            <div class="status-info">
-                <span id="systemStatus">SISTEMA LISTO</span>
-            </div>
+            <div class="status-info"><span id="systemStatus">SISTEMA LISTO</span></div>
         </footer>
     </div>
 
@@ -145,10 +129,11 @@
             <div class="parameter-editor">
                 <label id="parameterLabel">Valor:</label>
                 <input type="text" id="parameterInput" class="form-control">
-                <select id="parameterSelect" class="form-control hidden">
-                    <option value="izquierda">izquierda</option>
-                    <option value="derecha">derecha</option>
-                </select>
+                <!-- New button group for selection -->
+                <div id="parameterButtons" class="parameter-button-group hidden">
+                    <button class="btn btn-secondary param-btn" data-value="izquierda">IZQUIERDA</button>
+                    <button class="btn btn-secondary param-btn" data-value="derecha">DERECHA</button>
+                </div>
             </div>
             <div class="modal-actions">
                 <button id="saveParameter" class="btn btn-primary">GUARDAR</button>
@@ -174,9 +159,10 @@
             <div class="victory-bg"></div>
             <div class="victory-text">
                 <h2>MISIÓN COMPLETADA</h2>
+                <!-- New element for final time -->
+                <p class="victory-time">TIEMPO DE MISIÓN: <span id="finalMissionTime">00:00:00</span></p>
                 <div class="final-message">
                     <p>Lo has conseguido, Cadete. La secuencia es perfecta. A.U.R.O.R.A. ha ejecutado las órdenes sin fallos, ha recolectado la muestra de hielo y ahora se dirige a la zona segura para transmitir su análisis. Los datos que acaba de enviar cambiarán el futuro de la exploración espacial.</p>
-                    
                     <p>Hoy no solo has salvado un rover de mil millones de dólares. Has demostrado tener la mente analítica, la paciencia y la resolución de problemas de un verdadero/a ingeniero/a. Has convertido el caos en orden y el fracaso en un éxito histórico. La Academia y el mundo te dan las gracias. Misión cumplida.</p>
                 </div>
                 <button id="restartGame" class="btn btn-primary">NUEVA MISIÓN</button>
