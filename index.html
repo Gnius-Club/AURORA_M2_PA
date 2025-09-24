@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- ADDED: html2canvas library for screenshots -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <!-- Starfield Background -->
@@ -54,7 +56,7 @@
         <header class="game-header">
             <h1 class="game-title">A.U.R.O.R.A. MISIÓN 2</h1>
             <div class="header-status-container">
-                <div id="chronometer" class="chronometer">00:00:00</div>
+                <div id="chronometer" class="chronometer">00:00:00.00</div>
                 <div class="mission-status">
                     <span id="missionStatus">CALIBRANDO SISTEMAS...</span>
                 </div>
@@ -71,29 +73,16 @@
                 </div>
                 <div class="legend">
                     <h3>LEYENDA</h3>
-                    <div class="legend-item">
-                        <span class="icon">🤖</span>
-                        <span>A.U.R.O.R.A. (Rover)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="icon">⚙️</span>
-                        <span>Punto de Recolección</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="icon">🔬</span>
-                        <span>Punto de Análisis</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="icon">🪨</span>
-                        <span>Obstáculos</span>
-                    </div>
+                    <div class="legend-item"><span class="icon">🤖</span><span>A.U.R.O.R.A. (Rover)</span></div>
+                    <div class="legend-item"><span class="icon">⚙️</span><span>Punto de Recolección</span></div>
+                    <div class="legend-item"><span class="icon">🔬</span><span>Punto de Análisis</span></div>
+                    <div class="legend-item"><span class="icon">🪨</span><span>Obstáculos</span></div>
                 </div>
             </section>
 
             <!-- Command Panel -->
             <section class="command-panel">
                 <h2 class="panel-title">CENTRO DE COMANDOS</h2>
-                
                 <div class="command-box">
                     <h3>CAJA DE COMANDOS</h3>
                     <div id="commandBlocks" class="command-blocks">
@@ -103,7 +92,6 @@
                         <div class="command-block" data-command="analizarMuestra" draggable="true"><span class="command-name">analizarMuestra</span><span class="command-params">()</span></div>
                     </div>
                 </div>
-
                 <div class="sequence-area">
                     <h3>SECUENCIADOR DE OPERACIONES</h3>
                     <div id="sequenceContainer" class="sequence-container">
@@ -129,7 +117,6 @@
             <div class="parameter-editor">
                 <label id="parameterLabel">Valor:</label>
                 <input type="text" id="parameterInput" class="form-control">
-                <!-- New button group for selection -->
                 <div id="parameterButtons" class="parameter-button-group hidden">
                     <button class="btn btn-secondary param-btn" data-value="izquierda">IZQUIERDA</button>
                     <button class="btn btn-secondary param-btn" data-value="derecha">DERECHA</button>
@@ -155,17 +142,21 @@
 
     <!-- Victory Screen -->
     <div id="victoryScreen" class="victory-screen hidden">
-        <div class="victory-content">
+        <!-- ID for screenshot targeting -->
+        <div id="victoryContent" class="victory-content">
             <div class="victory-bg"></div>
             <div class="victory-text">
                 <h2>MISIÓN COMPLETADA</h2>
-                <!-- New element for final time -->
-                <p class="victory-time">TIEMPO DE MISIÓN: <span id="finalMissionTime">00:00:00</span></p>
+                <p class="victory-time">TIEMPO DE MISIÓN: <span id="finalMissionTime">00:00:00.00</span></p>
                 <div class="final-message">
                     <p>Lo has conseguido, Cadete. La secuencia es perfecta. A.U.R.O.R.A. ha ejecutado las órdenes sin fallos, ha recolectado la muestra de hielo y ahora se dirige a la zona segura para transmitir su análisis. Los datos que acaba de enviar cambiarán el futuro de la exploración espacial.</p>
                     <p>Hoy no solo has salvado un rover de mil millones de dólares. Has demostrado tener la mente analítica, la paciencia y la resolución de problemas de un verdadero/a ingeniero/a. Has convertido el caos en orden y el fracaso en un éxito histórico. La Academia y el mundo te dan las gracias. Misión cumplida.</p>
                 </div>
-                <button id="restartGame" class="btn btn-primary">NUEVA MISIÓN</button>
+                <div class="victory-actions">
+                    <!-- Button for downloading the report -->
+                    <button id="downloadReport" class="btn btn-secondary">DESCARGAR INFORME</button>
+                    <button id="restartGame" class="btn btn-primary">NUEVA MISIÓN</button>
+                </div>
             </div>
         </div>
     </div>
