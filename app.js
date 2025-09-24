@@ -39,7 +39,8 @@ let gameState = {
 
 // Timer State
 let timerInterval = null;
-let secondsElapsed = 0;
+let timerStartTime = 0;
+let finalTimeMs = 0;
 
 // Audio Context for sound effects
 let audioContext;
@@ -48,7 +49,7 @@ let sounds = {};
 // DOM Elements
 let elements = {};
 let currentEditingItem = null;
-let currentParameterSelection = null; // For button selection
+let currentParameterSelection = null;
 let draggedElement = null;
 
 // Initialize the game
@@ -78,18 +79,20 @@ function initializeElements() {
         parameterModal: document.getElementById('parameterModal'),
         parameterLabel: document.getElementById('parameterLabel'),
         parameterInput: document.getElementById('parameterInput'),
-        parameterButtons: document.getElementById('parameterButtons'), // New button container
+        parameterButtons: document.getElementById('parameterButtons'),
         saveParameter: document.getElementById('saveParameter'),
         cancelParameter: document.getElementById('cancelParameter'),
         errorModal: document.getElementById('errorModal'),
         errorMessage: document.getElementById('errorMessage'),
         retryMission: document.getElementById('retryMission'),
         victoryScreen: document.getElementById('victoryScreen'),
+        victoryContent: document.getElementById('victoryContent'),
+        downloadReport: document.getElementById('downloadReport'),
         restartGame: document.getElementById('restartGame'),
         missionStatus: document.getElementById('missionStatus'),
         systemStatus: document.getElementById('systemStatus'),
         chronometer: document.getElementById('chronometer'),
-        finalMissionTime: document.getElementById('finalMissionTime') // New element for victory time
+        finalMissionTime: document.getElementById('finalMissionTime')
     };
 }
 
@@ -281,7 +284,8 @@ function setupEventListeners() {
     elements.executeSequence.addEventListener('click', executeSequence);
     elements.saveParameter.addEventListener('click', saveParameter);
     elements.cancelParameter.addEventListener('click', closeParameterModal);
-    elements.retryMission.addEventListener('click', handleMissionRetry); // MODIFIED
+    elements.retryMission.addEventListener('click', handleMissionRetry);
+    elements.downloadReport.addEventListener('click', downloadMissionReport);
     elements.restartGame.addEventListener('click', restartGame);
     
     elements.tutorialModal.addEventListener('click', (e) => { if (e.target === e.currentTarget) skipTutorial(); });
@@ -295,34 +299,42 @@ function setupEventListeners() {
     document.addEventListener('keydown', handleKeyDown);
 }
 
-// NEW function to handle the reset after a failure
+function downloadMissionReport() {
+    playSound('click');
+    const actions = elements.victoryContent.querySelector('.victory-actions');
+    actions.style.visibility = 'hidden';
+
+    html2canvas(elements.victoryContent, {
+        backgroundColor: null,
+        useCORS: true
+    }).then(canvas => {
+        actions.style.visibility = 'visible';
+        const link = document.createElement('a');
+        link.download = 'informe-mision-aurora.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }).catch(err => {
+        console.error('Error al generar el informe:', err);
+        actions.style.visibility = 'visible';
+    });
+}
+
 function handleMissionRetry() {
     closeErrorModal();
     resetOnFailure();
 }
 
-// NEW function that contains all reset logic for a failed attempt
 function resetOnFailure() {
-    // Reset rover's logical state
     gameState.rover = { ...GAME_CONFIG.roverStart };
-    
-    // Reset mission progress for this attempt
     gameState.samplesCollected = false;
     gameState.samplesAnalyzed = false;
-
-    // Visually redraw the grid to move rover to start
     generateMarsGrid();
-
-    // Clear all execution statuses (like 'completed', 'error') from the sequence items
     const sequenceItems = elements.sequenceContainer.querySelectorAll('.sequence-item');
     sequenceItems.forEach(item => {
         item.classList.remove('current', 'completed', 'error');
     });
-
-    // Update mission status text
     elements.missionStatus.textContent = 'SISTEMA LISTO - REINTENTAR SECUENCIA';
 }
-
 
 function handleParamButtonClick(e) {
     const value = e.target.dataset.value;
@@ -334,12 +346,11 @@ function handleParamButtonClick(e) {
     playSound('click');
 }
 
-
 function handleKeyDown(e) {
     if (e.key === 'Escape') {
         if (!elements.tutorialModal.classList.contains('hidden')) skipTutorial();
         else if (!elements.parameterModal.classList.contains('hidden')) closeParameterModal();
-        else if (!elements.errorModal.classList.contains('hidden')) handleMissionRetry(); // MODIFIED
+        else if (!elements.errorModal.classList.contains('hidden')) handleMissionRetry();
     }
     if (e.key === 'Enter' && !elements.parameterModal.classList.contains('hidden')) saveParameter();
 }
@@ -561,7 +572,6 @@ function clearSequence() {
 function executeSequence() {
     if (gameState.isExecuting) return;
     
-    // Before executing, reset rover and progress from any previous failed attempt
     resetOnFailure();
 
     const sequenceItems = elements.sequenceContainer.querySelectorAll('.sequence-item');
@@ -769,7 +779,7 @@ function closeErrorModal() {
 }
 
 function showVictoryScreen() {
-    elements.finalMissionTime.textContent = formatTime(secondsElapsed); // Set final time
+    elements.finalMissionTime.textContent = formatTimeWithMillis(finalTimeMs);
     elements.victoryScreen.classList.remove('hidden');
     playSound('ambient');
 }
@@ -796,35 +806,39 @@ function resetGameState() {
 
 function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    secondsElapsed = 0;
-    updateTimerDisplay();
-    timerInterval = setInterval(() => {
-        secondsElapsed++;
-        updateTimerDisplay();
-    }, 1000);
+    timerStartTime = Date.now();
+    timerInterval = setInterval(updateTimerDisplay, 49); // Update ~20 times per second
 }
 
 function stopTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
+    finalTimeMs = Date.now() - timerStartTime;
 }
 
 function resetTimer() {
     stopTimer();
-    secondsElapsed = 0;
-    updateTimerDisplay();
+    timerStartTime = 0;
+    finalTimeMs = 0;
+    if (elements.chronometer) {
+        elements.chronometer.textContent = "00:00:00.00";
+    }
 }
 
-function formatTime(totalSeconds) {
-    const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
-    const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${hours}:${minutes}:${seconds}`;
+function formatTimeWithMillis(totalMs) {
+    if (totalMs <= 0) return "00:00:00.00";
+    const hours = Math.floor(totalMs / 3600000).toString().padStart(2, '0');
+    const minutes = Math.floor((totalMs % 3600000) / 60000).toString().padStart(2, '0');
+    const seconds = Math.floor((totalMs % 60000) / 1000).toString().padStart(2, '0');
+    const centiseconds = Math.floor((totalMs % 1000) / 10).toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}.${centiseconds}`;
 }
 
 function updateTimerDisplay() {
+    if (!timerStartTime) return;
+    const elapsedTime = Date.now() - timerStartTime;
     if (elements.chronometer) {
-        elements.chronometer.textContent = formatTime(secondsElapsed);
+        elements.chronometer.textContent = formatTimeWithMillis(elapsedTime);
     }
 }
 
